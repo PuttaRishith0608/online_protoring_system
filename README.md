@@ -2,6 +2,10 @@
 
 A complete online proctoring solution that detects academic integrity violations including copy-paste activity, tab switching, and AI-generated answers.
 
+**🚀 Status: Fully Deployed**
+- **Backend:** https://onlineprotoringsystem-production.up.railway.app (Railway)
+- **Frontend:** https://online-proctoring-frontend.vercel.app (Vercel)
+
 ## Features
 
 ✅ **Activity Logging** - Captures user events (copy-paste, tab switches, answer submissions)  
@@ -11,6 +15,7 @@ A complete online proctoring solution that detects academic integrity violations
 ✅ **REST API** - Simple FastAPI endpoints for logging and reporting  
 ✅ **CORS Enabled** - Ready for React frontend integration  
 ✅ **Interactive Docs** - Built-in Swagger UI for API testing  
+✅ **Full-Stack Deployment** - Backend on Railway, Frontend on Vercel  
 
 ## Project Structure
 
@@ -157,13 +162,6 @@ The integrity score is calculated based on the total number of suspicious events
 | **MEDIUM** | 1-3 suspicious events | ⚠️ Minor violations detected |
 | **LOW** | 4+ suspicious events | ❌ Multiple violations detected |
 
-## AI Detection Heuristic
-
-The system flags answer submissions as suspicious if:
-- **Answer length > 200 characters** AND
-- **Submitted in < 10 seconds**
-
-This heuristic detects unusually long, high-quality answers submitted too quickly, which is indicative of copy-paste or AI-generated content.
 
 ## Working with the Frontend
 
