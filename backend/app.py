@@ -5,17 +5,28 @@ Detects copy-paste, tab switching, and AI-generated answers
 
 import sys
 import traceback
+from contextlib import asynccontextmanager
 
 try:
     from fastapi import FastAPI, Request
     from fastapi.middleware.cors import CORSMiddleware
     from fastapi.responses import JSONResponse
     
-    # Create FastAPI app
+    # Define lifespan context manager
+    @asynccontextmanager
+    async def lifespan(app: FastAPI):
+        # Startup
+        print("\n✓ App startup - ready to handle requests", flush=True)
+        yield
+        # Shutdown
+        print("\n✓ App shutdown - graceful exit", flush=True)
+    
+    # Create FastAPI app with lifespan
     app = FastAPI(
         title="Online Proctoring System",
         description="Backend API for monitoring and detecting academic integrity violations",
-        version="1.0.0"
+        version="1.0.0",
+        lifespan=lifespan
     )
     
     # Add CORS middleware
