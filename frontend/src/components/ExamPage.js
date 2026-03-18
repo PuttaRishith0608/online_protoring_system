@@ -13,41 +13,10 @@ function ExamPage({ userId }) {
   const [tabSwitchCounts, setTabSwitchCounts] = useState(0);
   const [eventLog, setEventLog] = useState([]);
 
-  // Track when user leaves the window
-  useEffect(() => {
-    const handleBlur = () => {
-      logEvent('tab_switch', {
-        event: 'user_switched_to_different_tab'
-      });
-      console.warn('⚠️ Tab switch detected');
-    };
-
-    const handleFocus = () => {
-      console.log('✓ User returned to exam');
-    };
-
-    const handleCopy = () => {
-      logEvent('copy_paste', {
-        event: 'user_copied_text'
-      });
-      setCopyCounts(prev => prev + 1);
-      console.warn('⚠️ Copy detected');
-    };
-
-    window.addEventListener('blur', handleBlur);
-    window.addEventListener('focus', handleFocus);
-    document.addEventListener('copy', handleCopy);
-
-    return () => {
-      window.removeEventListener('blur', handleBlur);
-      window.removeEventListener('focus', handleFocus);
-      document.removeEventListener('copy', handleCopy);
-    };
-  }, [userId]);
-
-  // Log event to backend
+  // ============ EVENT LOGGING FUNCTION ============
   const logEvent = async (eventType, metadata = {}) => {
     try {
+      console.log(`📤 Sending event to backend: ${eventType}`, metadata);
       await api.logEvent(userId, eventType, metadata);
       
       const newEvent = {
@@ -56,10 +25,155 @@ function ExamPage({ userId }) {
         metadata
       };
       setEventLog(prev => [...prev, newEvent]);
+      console.log(`✓ Event logged successfully: ${eventType}`);
     } catch (error) {
-      console.error('Failed to log event:', error);
+      console.error('❌ Failed to log event:', error);
     }
   };
+
+  // ============ COPY-PASTE DETECTION SETUP ============
+  useEffect(() => {
+    console.log('🔧 Setting up event listeners...');
+
+    // ===== COPY EVENT HANDLER =====
+    const handleCopy = (e) => {
+      console.warn('⚠️ COPY EVENT DETECTED - using Ctrl+C or right-click menu');
+      e.preventDefault();
+      
+      logEvent('copy_paste', {
+        operation: 'copy',
+        source: 'copy_event',
+        timestamp: new Date().toISOString()
+      });
+      setCopyCounts(prev => prev + 1);
+      
+      alert('❌ Copy-paste is not allowed during exam!');
+    };
+
+    // ===== PASTE EVENT HANDLER =====
+    const handlePaste = (e) => {
+      console.warn('⚠️ PASTE EVENT DETECTED - user tried to paste');
+      e.preventDefault();
+      
+      logEvent('copy_paste', {
+        operation: 'paste',
+        source: 'paste_event',
+        timestamp: new Date().toISOString()
+      });
+      setCopyCounts(prev => prev + 1);
+      
+      alert('❌ Pasting is not allowed during exam!');
+      return false;
+    };
+
+    // ===== CUT EVENT HANDLER =====
+    const handleCut = (e) => {
+      console.warn('⚠️ CUT EVENT DETECTED - using Ctrl+X');
+      e.preventDefault();
+      
+      logEvent('copy_paste', {
+        operation: 'cut',
+        source: 'cut_event',
+        timestamp: new Date().toISOString()
+      });
+      setCopyCounts(prev => prev + 1);
+      
+      alert('❌ Cut operation is not allowed during exam!');
+      return false;
+    };
+
+    // ===== KEYBOARD SHORTCUT DETECTION =====
+    const handleKeyDown = (e) => {
+      // Detect Ctrl+C (or Cmd+C on Mac)
+      if ((e.ctrlKey || e.metaKey) && e.key === 'c') {
+        console.warn('⚠️ KEYBOARD SHORTCUT DETECTED - Ctrl+C');
+        e.preventDefault();
+        
+        logEvent('copy_paste', {
+          operation: 'copy',
+          source: 'keyboard_ctrl_c',
+          timestamp: new Date().toISOString()
+        });
+        setCopyCounts(prev => prev + 1);
+        
+        alert('❌ Copy operation (Ctrl+C) is not allowed during exam!');
+        return false;
+      }
+
+      // Detect Ctrl+V (or Cmd+V on Mac)
+      if ((e.ctrlKey || e.metaKey) && e.key === 'v') {
+        console.warn('⚠️ KEYBOARD SHORTCUT DETECTED - Ctrl+V');
+        e.preventDefault();
+        
+        logEvent('copy_paste', {
+          operation: 'paste',
+          source: 'keyboard_ctrl_v',
+          timestamp: new Date().toISOString()
+        });
+        setCopyCounts(prev => prev + 1);
+        
+        alert('❌ Paste operation (Ctrl+V) is not allowed during exam!');
+        return false;
+      }
+
+      // Detect Ctrl+X (or Cmd+X on Mac)
+      if ((e.ctrlKey || e.metaKey) && e.key === 'x') {
+        console.warn('⚠️ KEYBOARD SHORTCUT DETECTED - Ctrl+X');
+        e.preventDefault();
+        
+        logEvent('copy_paste', {
+          operation: 'cut',
+          source: 'keyboard_ctrl_x',
+          timestamp: new Date().toISOString()
+        });
+        setCopyCounts(prev => prev + 1);
+        
+        alert('❌ Cut operation (Ctrl+X) is not allowed during exam!');
+        return false;
+      }
+    };
+
+    // ===== TAB SWITCH DETECTION =====
+    const handleBlur = () => {
+      console.warn('⚠️ TAB SWITCH DETECTED - user left window');
+      logEvent('tab_switch', {
+        event: 'user_switched_to_different_tab',
+        timestamp: new Date().toISOString()
+      });
+      setTabSwitchCounts(prev => prev + 1);
+    };
+
+    const handleFocus = () => {
+      console.log('✓ User returned to exam');
+    };
+
+    // ===== REGISTER EVENT LISTENERS =====
+    // Add listeners to document for copy/paste/cut events
+    document.addEventListener('copy', handleCopy, true);  // true = capture phase
+    document.addEventListener('paste', handlePaste, true);
+    document.addEventListener('cut', handleCut, true);
+    document.addEventListener('keydown', handleKeyDown, true);
+
+    // Add listeners for tab switching
+    window.addEventListener('blur', handleBlur);
+    window.addEventListener('focus', handleFocus);
+
+    console.log('✓ All event listeners registered successfully');
+
+    // ===== CLEANUP ON UNMOUNT =====
+    return () => {
+      console.log('🧹 Cleaning up event listeners...');
+      document.removeEventListener('copy', handleCopy, true);
+      document.removeEventListener('paste', handlePaste, true);
+      document.removeEventListener('cut', handleCut, true);
+      document.removeEventListener('keydown', handleKeyDown, true);
+      window.removeEventListener('blur', handleBlur);
+      window.removeEventListener('focus', handleFocus);
+      console.log('✓ Event listeners cleaned up');
+    };
+  }, [userId]);
+
+
 
   // Handle answer change
   const handleAnswerChange = (questionId, value) => {
