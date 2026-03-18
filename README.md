@@ -62,7 +62,9 @@ pip install -r requirements.txt
 ```bash
 python app.py
 ```
-
+### frontend setup
+1. npm install
+2. npm start 
 The backend will start at `http://localhost:8000`
 
 3. **Access API Documentation:**
