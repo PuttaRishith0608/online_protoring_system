@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import api from '../services/api';
 
 function ExamPage({ userId }) {
@@ -12,6 +12,7 @@ function ExamPage({ userId }) {
   const [copyCounts, setCopyCounts] = useState(0);
   const [tabSwitchCounts, setTabSwitchCounts] = useState(0);
   const [eventLog, setEventLog] = useState([]);
+  const isAlertActive = useRef(false);
 
   // ============ EVENT LOGGING FUNCTION ============
   const logEvent = async (eventType, metadata = {}) => {
@@ -47,7 +48,9 @@ function ExamPage({ userId }) {
       });
       setCopyCounts(prev => prev + 1);
       
+      isAlertActive.current = true;
       alert('❌ Copy-paste is not allowed during exam!');
+      isAlertActive.current = false;
     };
 
     // ===== PASTE EVENT HANDLER =====
@@ -62,7 +65,9 @@ function ExamPage({ userId }) {
       });
       setCopyCounts(prev => prev + 1);
       
+      isAlertActive.current = true;
       alert('❌ Pasting is not allowed during exam!');
+      isAlertActive.current = false;
       return false;
     };
 
@@ -78,7 +83,9 @@ function ExamPage({ userId }) {
       });
       setCopyCounts(prev => prev + 1);
       
+      isAlertActive.current = true;
       alert('❌ Cut operation is not allowed during exam!');
+      isAlertActive.current = false;
       return false;
     };
 
@@ -96,7 +103,9 @@ function ExamPage({ userId }) {
         });
         setCopyCounts(prev => prev + 1);
         
+        isAlertActive.current = true;
         alert('❌ Copy operation (Ctrl+C) is not allowed during exam!');
+        isAlertActive.current = false;
         return false;
       }
 
@@ -112,7 +121,9 @@ function ExamPage({ userId }) {
         });
         setCopyCounts(prev => prev + 1);
         
+        isAlertActive.current = true;
         alert('❌ Paste operation (Ctrl+V) is not allowed during exam!');
+        isAlertActive.current = false;
         return false;
       }
 
@@ -128,13 +139,21 @@ function ExamPage({ userId }) {
         });
         setCopyCounts(prev => prev + 1);
         
+        isAlertActive.current = true;
         alert('❌ Cut operation (Ctrl+X) is not allowed during exam!');
+        isAlertActive.current = false;
         return false;
       }
     };
 
     // ===== TAB SWITCH DETECTION =====
     const handleBlur = () => {
+      // Don't count as tab switch if alert is active (alert causes blur event)
+      if (isAlertActive.current) {
+        console.log('ℹ️ Blur event from alert - not counting as tab switch');
+        return;
+      }
+      
       console.warn('⚠️ TAB SWITCH DETECTED - user left window');
       logEvent('tab_switch', {
         event: 'user_switched_to_different_tab',
@@ -198,10 +217,14 @@ function ExamPage({ userId }) {
         }
       }
       
+      isAlertActive.current = true;
       alert('✓ Exam submitted successfully');
+      isAlertActive.current = false;
       resetExam();
     } catch (error) {
+      isAlertActive.current = true;
       alert('✗ Error submitting exam');
+      isAlertActive.current = false;
       console.error(error);
     }
   };
