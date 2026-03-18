@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import api from '../services/api';
 
 function ExamPage({ userId }) {
@@ -15,7 +15,7 @@ function ExamPage({ userId }) {
   const isAlertActive = useRef(false);
 
   // ============ EVENT LOGGING FUNCTION ============
-  const logEvent = async (eventType, metadata = {}) => {
+  const logEvent = useCallback(async (eventType, metadata = {}) => {
     try {
       console.log(`📤 Sending event to backend: ${eventType}`, metadata);
       await api.logEvent(userId, eventType, metadata);
@@ -30,7 +30,7 @@ function ExamPage({ userId }) {
     } catch (error) {
       console.error('❌ Failed to log event:', error);
     }
-  };
+  }, [userId]);
 
   // ============ COPY-PASTE DETECTION SETUP ============
   useEffect(() => {
@@ -190,7 +190,7 @@ function ExamPage({ userId }) {
       window.removeEventListener('focus', handleFocus);
       console.log('✓ Event listeners cleaned up');
     };
-  }, [userId]);
+  }, [userId, logEvent]);
 
 
 
@@ -243,7 +243,7 @@ function ExamPage({ userId }) {
     if (!startTime) {
       setStartTime(Date.now());
     }
-  }, []);
+  }, [startTime]);
 
   return (
     <div className="exam-page">

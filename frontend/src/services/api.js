@@ -83,9 +83,11 @@ export const healthCheck = async () => {
   }
 };
 
-export default {
+const api = {
   logEvent,
   getIntegrityReport,
   getUserEvents,
   healthCheck
 };
+
+export default api;

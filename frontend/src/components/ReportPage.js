@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import api from '../services/api';
 
 function ReportPage({ userId }) {
@@ -6,12 +6,7 @@ function ReportPage({ userId }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Fetch report when userId changes
-  useEffect(() => {
-    fetchReport();
-  }, [userId]);
-
-  const fetchReport = async () => {
+  const fetchReport = useCallback(async () => {
     setLoading(true);
     setError(null);
     
@@ -24,7 +19,12 @@ function ReportPage({ userId }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [userId]);
+
+  // Fetch report when userId changes
+  useEffect(() => {
+    fetchReport();
+  }, [fetchReport]);
 
   const getScoreColor = (score) => {
     switch(score) {
